@@ -1,0 +1,10 @@
+{
+	"name": "PhidgetHX",
+	"url": "http://phidgets.com",
+	"license": "MIT",
+	"tags": ["phidgets"],
+	"description": "as3hx port of phidgets for flash haxe target",
+	"version": "0.0.1",
+	"contributors": [ "decept404" ],
+	"dependencies": {"as3hx" : "" }
+}
