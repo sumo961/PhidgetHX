@@ -1,13 +1,19 @@
 package com.phidgets;
 
-
-import flash.net.XMLSocket;
-
+#if flash
+typedef Socket = flash.net.XMLSocket;
 import flash.events.DataEvent;
 import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.events.StatusEvent;
 import flash.system.Security;
+#elseif neko
+typedef Socket = com.phidgets.compat.net.NekoSocket;
+private typedef Event = com.phidgets.compat.NativeEvent;
+private typedef IOErrorEvent = Event;
+private typedef DataEvent = com.phidgets.compat.net.NativeDataEvent;
+#end
+
 
 // WARNING: This class is for internal use only.
 class PhidgetSocket
@@ -65,7 +71,7 @@ class PhidgetSocket
 		*/
     private static inline var protocol_ver : String = "1.0.10";
     
-    private var _socket : XMLSocket;
+    private var _socket : Socket;
     private var _host : String = null;
     private var _port : Int = com.phidgets.Constants.PUNK_INT;
     private var _serverID : String = null;
@@ -83,7 +89,7 @@ class PhidgetSocket
     
     public function new()
     {
-        _socket = new XMLSocket();
+        _socket = new Socket();
         
         _socket.addEventListener(Event.CONNECT, onSocketConnect);
         _socket.addEventListener(DataEvent.DATA, onSocketData);
@@ -104,7 +110,7 @@ class PhidgetSocket
         
         if (password != null) 
             _password = password;
-        flash.system.Security.loadPolicyFile("xmlsocket://" + address + ":" + port);
+        //flash.system.Security.loadPolicyFile("xmlsocket://" + address + ":" + port);
         _socket.connect(_host, _port);
     }
     
@@ -167,7 +173,7 @@ class PhidgetSocket
                 i += 3;
             }
             else 
-            newVal += (val.charAt(i));
+            newVal += (val.charAt(i++));
         }
         if (newVal == String.fromCharCode(0x01)) 
             return "";
@@ -231,7 +237,7 @@ class PhidgetSocket
         socketSend("995 authenticate, version=" + protocol_ver);
     }
     
-    private function onSocketError(evt : IOErrorEvent) : Void{
+    private function onSocketError(evt : Event) : Void{
         var error : PhidgetError = new PhidgetError(Constants.EPHIDGET_NETWORK);
         error.setMessage(evt.text);
         _errorCallback(error);

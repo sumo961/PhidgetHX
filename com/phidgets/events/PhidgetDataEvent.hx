@@ -5,8 +5,6 @@ import com.phidgets.events.PhidgetEvent;
 import com.phidgets.Phidget;
 import com.phidgets.PhidgetError;
 import com.phidgets.Constants;
-import flash.events.Event;
-import flash.accessibility.Accessibility;
 
 /*
 		Class: PhidgetDataEvent

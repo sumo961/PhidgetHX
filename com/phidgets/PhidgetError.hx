@@ -1,6 +1,10 @@
 // ActionScript file
 package com.phidgets;
-import flash.errors.Error;
+#if flash
+private typedef Error = flash.errors.Error;
+#else
+private typedef Error = com.phidgets.compat.NativeError;
+#end
 
 /*
 		Class: PhidgetError

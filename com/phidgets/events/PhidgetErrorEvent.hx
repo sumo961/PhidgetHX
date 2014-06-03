@@ -3,7 +3,12 @@ package com.phidgets.events;
 
 import com.phidgets.Phidget;
 import com.phidgets.PhidgetError;
-import flash.events.Event;
+#if flash
+private typedef Event = flash.events.Event;
+#else
+private typedef Event = com.phidgets.compat.NativeEvent;
+#end
+
 
 /*
 		Class: PhidgetErrorEvent
@@ -33,7 +38,7 @@ class PhidgetErrorEvent extends Event
         _sender = sender;
     }
     
-    override public function toString() : String{
+    public function toString() : String{
         return "[ Phidget Error Event: " + _error.message + " ]";
     }
     

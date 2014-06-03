@@ -2,12 +2,17 @@ package com.phidgets;
 
 import com.phidgets.PhidgetError;
 import com.phidgets.PhidgetSocket;
-
-import flash.events.Event;
 import com.phidgets.events.PhidgetEvent;
 import com.phidgets.events.PhidgetErrorEvent;
-import flash.events.EventDispatcher;
 using com.phidgets.FloatUtils;
+
+#if flash
+private typedef Event = flash.events.Event;
+private typedef EventDispatcher = flash.events.EventDispatcher;
+#else
+private typedef Event = com.phidgets.compat.NativeEvent;
+private typedef EventDispatcher = com.phidgets.compat.NativeEventDispatcher;
+#end
 
 /*
 		Class: Phidget
@@ -383,7 +388,7 @@ class Phidget extends EventDispatcher
         return str;
     }
     
-    override public function toString() : String{
+    public function toString() : String{
         return _deviceName + ", Version: " + _deviceVersion + ", Serial Number: " + _serialNumber + (_deviceLabel == null || _deviceLabel == ("") ? "" : ", Label: " + _deviceLabel);
     }
 }
