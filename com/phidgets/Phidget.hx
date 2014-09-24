@@ -34,9 +34,9 @@ class Phidget extends EventDispatcher
     public var Name(get, never) : String;
     public var Label(get, set) : String;
     public var Version(get, never) : Int;
-    public var serialNumber(default, never) : Int;
-    public var isAttached(default, never) : Bool;
-    public var isConnected(default, never) : Bool;
+    public var serialNumber(get, never) : Int;
+    public var isAttached(get, never) : Bool;
+    public var isConnected(get, never) : Bool;
     public var Address(get, never) : String;
     public var Port(get, never) : Int;
 
@@ -335,7 +335,7 @@ class Phidget extends EventDispatcher
 			Property: serialNumber
 			Gets the unique serial number of a Phidget.
 		*/
-    private function get_SerialNumber() : Int{
+    private function get_serialNumber() : Int{
         if (_serialNumber == com.phidgets.Constants.PUNK_INT) 
             throw new PhidgetError(com.phidgets.Constants.EPHIDGET_UNKNOWNVAL);
         return _serialNumber;
@@ -344,7 +344,7 @@ class Phidget extends EventDispatcher
 			Property: isAttached
 			Gets the attached state of a Phidget.
 		*/
-    private function get_IsAttached() : Bool{
+    private function get_isAttached() : Bool{
         return _attached;
     }
     
@@ -354,7 +354,7 @@ class Phidget extends EventDispatcher
 			Gets the connected to server state.
 			Note that being connected to the server does not mean that the Phidget is attached.
 		*/
-    private function get_IsConnected() : Bool{
+    private function get_isConnected() : Bool{
         return _phidgetSocket.isConnected;
     }
     /*
@@ -388,7 +388,7 @@ class Phidget extends EventDispatcher
         return str;
     }
     
-    public function toString() : String{
+    override public function toString() : String{
         return _deviceName + ", Version: " + _deviceVersion + ", Serial Number: " + _serialNumber + (_deviceLabel == null || _deviceLabel == ("") ? "" : ", Label: " + _deviceLabel);
     }
 }

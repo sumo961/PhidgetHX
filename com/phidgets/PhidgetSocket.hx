@@ -1,12 +1,12 @@
 package com.phidgets;
 
 #if flash
-typedef Socket = flash.net.XMLSocket;
 import flash.events.DataEvent;
 import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.events.StatusEvent;
 import flash.system.Security;
+typedef Socket = flash.net.XMLSocket;
 #elseif neko
 typedef Socket = com.phidgets.compat.net.NekoSocket;
 private typedef Event = com.phidgets.compat.NativeEvent;
@@ -21,7 +21,7 @@ class PhidgetSocket
     public var Address(get, never) : String;
     public var Port(get, never) : Int;
     public var ServerID(get, never) : String;
-    public var isConnected(default, never) : Bool;
+    public var isConnected(get_isConnected, never) : Bool;
 
     /*
 		*	Phidget WebService Protocol version history
@@ -229,6 +229,7 @@ class PhidgetSocket
             return;
         }
         
+		trace("Phidget socket connected");
         _connected = true;
         
         //AS3.0 wants line to be null terminated
@@ -239,11 +240,14 @@ class PhidgetSocket
     
     private function onSocketError(evt : Event) : Void{
         var error : PhidgetError = new PhidgetError(Constants.EPHIDGET_NETWORK);
+		#if !flash 
         error.setMessage(evt.text);
+		#end
         _errorCallback(error);
     }
     
-    private function onSocketClose(evt : Event) : Void{
+    private function onSocketClose(evt : Event) : Void {
+		trace("Phidget socket closed");
         _connected = false;
         _disconnectedCallback();
     }
@@ -356,7 +360,7 @@ class PhidgetSocket
     private function get_ServerID() : String{
         return _serverID;
     }
-    private function get_IsConnected() : Bool{
+    private function get_isConnected() : Bool{
         return _connected;
     }
 }

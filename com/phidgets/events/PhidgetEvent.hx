@@ -39,7 +39,7 @@ class PhidgetEvent extends Event
         this._phidget = phidget;
     }
     
-    public function toString() : String{
+    override public function toString() : String{
         return "[ Phidget Event: " + type + " ]";
     }
     /*

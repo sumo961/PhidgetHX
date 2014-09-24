@@ -38,7 +38,7 @@ class PhidgetErrorEvent extends Event
         _sender = sender;
     }
     
-    public function toString() : String{
+    override public function toString() : String{
         return "[ Phidget Error Event: " + _error.message + " ]";
     }
     
