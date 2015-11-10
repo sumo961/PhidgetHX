@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="PhidgetTest" package="com.sample.phidgettest" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="TestSprite" />
+	
+	<source path="Source" />
+	
+	<!--  <set name="openfl-legacy" /> -->
+	<haxelib name="openfl" />
+	<haxelib name="phidgethx" />
+
+	<!-- <haxedef name="network-sandbox" /> -->
+	
+	<assets path="Assets" rename="assets" />
+	
+</project>
