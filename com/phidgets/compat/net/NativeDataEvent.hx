@@ -9,10 +9,15 @@ class NativeDataEvent extends NativeEvent
 {
 	public static inline var DATA:String = "data";
 	public var data:String;
-	public function new() 
+	//public var type:String;
+
+	public function new(type:String,data:String) 
 	{
-		data = "";
-		super(DATA);
+		//data = "";
+		trace("Data event"+data);
+		this.type = type;
+		this.data=data;
+		super(DATA,data);
 	}
 	
 }

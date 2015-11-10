@@ -6,7 +6,7 @@ import com.phidgets.events.PhidgetEvent;
 import com.phidgets.events.PhidgetErrorEvent;
 using com.phidgets.FloatUtils;
 
-#if flash
+#if !neko
 private typedef Event = flash.events.Event;
 private typedef EventDispatcher = flash.events.EventDispatcher;
 #else
@@ -91,6 +91,7 @@ class Phidget extends EventDispatcher
 		*/
     public function open(address : String, port : Int, password : String = null, serialNumber : Int = com.phidgets.Constants.PUNK_INT, label : String = null) : Void{
         _phidgetSocket = new PhidgetSocket();
+        trace("pidget open");
         if (serialNumber != com.phidgets.Constants.PUNK_INT && serialNumber != -1) 
         {
             _specificDevice = com.phidgets.Constants.PHIDGETOPEN_SERIAL;
@@ -101,9 +102,11 @@ class Phidget extends EventDispatcher
             _specificDevice = com.phidgets.Constants.PHIDGETOPEN_LABEL;
             _deviceLabel = label;
         }
-        else 
-        _specificDevice = com.phidgets.Constants.PHIDGETOPEN_ANY;
-        _phidgetSocket.connect(address, port, password, onConnected, onDisconnected, onError);
+        else
+        {
+            _specificDevice = com.phidgets.Constants.PHIDGETOPEN_ANY;
+        }
+        _phidgetSocket.connect(address, port, password, onConnected, onDisconnected, onError);//, onPhidgetData);
     }
     
     /*
@@ -140,7 +143,11 @@ class Phidget extends EventDispatcher
         else if (_specificDevice == com.phidgets.Constants.PHIDGETOPEN_LABEL) 
             pattern = pattern + "/" + _phidgetSocket.escape(_deviceLabel, true);
         _phidgetSocket.setListener(pattern, onPhidgetData);
-        
+
+
+
+        trace("about to dispatchEvent PhidgetEvent.Connect"+pattern);
+
         dispatchEvent(new PhidgetEvent(PhidgetEvent.CONNECT, this));
     }
     
@@ -204,7 +211,7 @@ class Phidget extends EventDispatcher
     
     private function onPhidgetData(key : String, val : String, reason : Int) : Void
     {
-        //trace("Key: "+key+" Val: "+val+" Reason: "+reason);
+        trace("Getting PhidgetData Key: "+key+" Val: "+val+" Reason: "+reason+"_phidgetSocket"+_phidgetSocket);
         
         if (reason != com.phidgets.Constants.ENTRY_REMOVING || val == "Detached") 
         {
@@ -225,7 +232,8 @@ class Phidget extends EventDispatcher
             if (_specificDevice == com.phidgets.Constants.PHIDGETOPEN_LABEL && val != "Detached") 
             {
                 _serialNumber = serialNumber;
-            }  //trace("Serial: "+serialNumber+" SetThing: "+setThing+" Index: "+index+" Value: "+val+" KeyCount: "+keyCount);  
+            }  
+            trace("Serial: "+serialNumber+" SetThing: "+setThing+" Index: "+index+" Value: "+val+" KeyCount: "+keyCount);  
             
             
             

@@ -6,6 +6,9 @@ import com.phidgets.Phidget;
 import com.phidgets.PhidgetError;
 import com.phidgets.Constants;
 
+//import flash.events.Event;
+//import flash.accessibility.Accessibility;
+
 /*
 		Class: PhidgetDataEvent
 		A class for data events from Phidget boards.
@@ -121,7 +124,7 @@ class PhidgetDataEvent extends PhidgetEvent
         if (_index == -1) 
             return "[ Phidget Data Event: " + type + " to " + _data + " ]"
         else 
-        return "[ Phidget Data Event: " + type + " " + _index + " to " + _data + " ]";
+            return "[ Phidget Data Event: " + type + " " + _index + " to " + _data + " ]";
     }
     
     /*

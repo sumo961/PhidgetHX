@@ -2,7 +2,7 @@ package com.phidgets.events;
 
 
 import com.phidgets.Phidget;
-#if flash
+#if !neko
 private typedef Event = flash.events.Event;
 #else
 private typedef Event = com.phidgets.compat.NativeEvent;
@@ -37,6 +37,7 @@ class PhidgetEvent extends Event
     {
         super(type);
         this._phidget = phidget;
+        trace("new phidget event"+type);
     }
     
     override public function toString() : String{

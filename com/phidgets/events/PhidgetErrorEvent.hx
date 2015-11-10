@@ -3,7 +3,7 @@ package com.phidgets.events;
 
 import com.phidgets.Phidget;
 import com.phidgets.PhidgetError;
-#if flash
+#if !neko
 private typedef Event = flash.events.Event;
 #else
 private typedef Event = com.phidgets.compat.NativeEvent;

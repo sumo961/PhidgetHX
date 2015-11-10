@@ -1,6 +1,6 @@
 // ActionScript file
 package com.phidgets;
-#if flash
+#if !neko//(flash||cpp)
 private typedef Error = flash.errors.Error;
 #else
 private typedef Error = com.phidgets.compat.NativeError;

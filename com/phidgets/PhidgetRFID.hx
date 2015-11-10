@@ -49,13 +49,15 @@ class PhidgetRFID extends Phidget
     public function new()
     {
         super("PhidgetRFID");
+       // super();
+        trace("new PhidgetRFID");
     }
     
     override private function initVars() : Void{
         numOutputs = com.phidgets.Constants.PUNK_INT;
         lastTag = null;
         lastTagProtocol = 0;
-        outputs = new Array<Dynamic>(2);
+        outputs = new Array<Dynamic>();
         lastTagValid = com.phidgets.Constants.PUNI_BOOL;
         tagState = com.phidgets.Constants.PUNI_BOOL;
         antennaState = com.phidgets.Constants.PUNI_BOOL;
@@ -63,6 +65,7 @@ class PhidgetRFID extends Phidget
     }
     
     override private function onSpecificPhidgetData(setThing : String, index : Int, value : String) : Void{
+        trace ("setThing"+setThing);
         switch (setThing)
         {
             case "NumberOfOutputs":
@@ -83,12 +86,13 @@ class PhidgetRFID extends Phidget
                 if (isAttached) 
                     dispatchEvent(
                         new PhidgetDataEvent(
-                        PhidgetDataEvent.TAG, this, 
-                        new PhidgetRFIDTag(
-                        tagString, 
-                        tagProto, 
-                        ), 
-                        ));
+                            PhidgetDataEvent.TAG, this, 
+                                new PhidgetRFIDTag(
+                                    tagString, 
+                                    tagProto 
+                                ) 
+                            )
+                        );
                 lastTag = tagString;
                 lastTagProtocol = tagProto;
             case "TagLoss2":
@@ -101,8 +105,8 @@ class PhidgetRFID extends Phidget
                         PhidgetDataEvent.TAG_LOST, this, 
                         new PhidgetRFIDTag(
                         value.substring(value.indexOf("/") + 1), 
-                        Std.parseInt(value.split("/")[0]), 
-                        ), 
+                        Std.parseInt(value.split("/")[0]) 
+                        ) 
                         ));
             case "TagState":
                 if (tagState == com.phidgets.Constants.PUNI_BOOL) 

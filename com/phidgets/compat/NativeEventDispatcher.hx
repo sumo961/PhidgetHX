@@ -25,5 +25,9 @@ class NativeEventDispatcher
 			l(event);
 		}
 	}
+	 public function toString() : String{
+	 	return "Phidget EventDispatcher";
+        //return "[ Phidget EventDispatcher: " + type + " ]";
+    }
 	
 }

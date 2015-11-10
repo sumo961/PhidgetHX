@@ -1,13 +1,22 @@
 package com.phidgets;
 
-#if flash
+#if !neko //(flash || ios  ||cpp)
 import flash.events.DataEvent;
 import flash.events.Event;
 import flash.events.IOErrorEvent;
-import flash.events.StatusEvent;
+import flash.events.EventDispatcher;
+//import flash.events.StatusEvent;
 import flash.system.Security;
 typedef Socket = flash.net.XMLSocket;
-#elseif neko
+/*#elseif cpp
+import flash.events.DataEvent;
+import flash.events.Event;
+import flash.events.IOErrorEvent;
+import flash.events.EventDispatcher;
+//import flash.events.StatusEvent;
+import flash.system.Security;
+typedef Socket = sys.net.Socket;*/
+#else //if (tvos || neko)
 typedef Socket = com.phidgets.compat.net.NekoSocket;
 private typedef Event = com.phidgets.compat.NativeEvent;
 private typedef IOErrorEvent = Event;
@@ -86,6 +95,7 @@ class PhidgetSocket
     private var _connectedCallback : Dynamic;
     private var _disconnectedCallback : Dynamic;
     private var _errorCallback : Dynamic;
+    //private var _dataCallback : Dynamic;
     
     public function new()
     {
@@ -97,16 +107,20 @@ class PhidgetSocket
         _socket.addEventListener(IOErrorEvent.IO_ERROR, onSocketError);
         
         lidList = new Array<Dynamic>();
+
+        trace ("socket called");
     }
     
     public function connect(address : String, port : Int, password : String,
-            connectedCallback : Dynamic, disconnectedCallback : Dynamic, errorCallback : Dynamic) : Void
+            connectedCallback : Dynamic, disconnectedCallback : Dynamic, errorCallback : Dynamic):Void//, dataCallback: Dynamic) : Void
     {
+        trace ("trying to connect to"+address+port);
         _host = address;
         _port = port;
         _connectedCallback = connectedCallback;
         _disconnectedCallback = disconnectedCallback;
         _errorCallback = errorCallback;
+        //_dataCallback=dataCallback;
         
         if (password != null) 
             _password = password;
@@ -181,13 +195,14 @@ class PhidgetSocket
     }
     
     private function socketSend(data : String) : Void{
-        var request : String = data;  // + "\n";  
-        //trace("Request: <"+request+">");
+        var request : String = data;//+ "\n";  
+        trace("socketSend: Request: <"+request+">");
         _socket.send(request);
     }
     
     public function setKey(key : String, val : String, persistent : Bool) : Void{
         var request : String = "set " + key + "=\"" + escape(val) + "\"";
+        trace("setting Key:"+key);
         if (!persistent) 
             request = request + " for session";
         socketSend(request);
@@ -200,6 +215,8 @@ class PhidgetSocket
     
     public function setListener(pattern : String, callback : Dynamic) : Int
     {
+        trace("socket.setListener:"+pattern+callback);
+
         var request : String = "listen " + pattern + " lid" + lidCounter;
         lidList[lidCounter] = callback;
         lidCounter++;
@@ -223,6 +240,8 @@ class PhidgetSocket
     }
     
     private function onSocketConnect(evt : Event) : Void{
+
+        trace("onSocketConnect "+evt);
         if (!_socket.connected) 
         {
             _errorCallback(new PhidgetError(com.phidgets.Constants.EPHIDGET_NETWORK_NOTCONNECTED));
@@ -233,17 +252,20 @@ class PhidgetSocket
         _connected = true;
         
         //AS3.0 wants line to be null terminated
+        #if flash
         socketSend("need nulls");
+        #end
         //start authentication proccess
         socketSend("995 authenticate, version=" + protocol_ver);
     }
     
     private function onSocketError(evt : Event) : Void{
         var error : PhidgetError = new PhidgetError(Constants.EPHIDGET_NETWORK);
-		#if !flash 
-        error.setMessage(evt.text);
-		#end
+		//#if !flash 
+        error.setMessage(Std.string(evt));
+		//#end
         _errorCallback(error);
+        trace("socket error");
     }
     
     private function onSocketClose(evt : Event) : Void {
@@ -253,102 +275,120 @@ class PhidgetSocket
     }
     
     private function onSocketData(evt : DataEvent) : Void{
-        //trace(evt.data);
-        var realData : String = evt.data;
-        if (evt.data.indexOf("\n") != -1) 
-            realData = evt.data.substring(0, evt.data.indexOf("\n"));
+
         
-        var tag : String = null;
-        var multiPart : Bool = false;
-        
-        //check for and parse out a tag
-        if (realData.charCodeAt(0) > "9".charCodeAt(0) || realData.charCodeAt(0) < "0".charCodeAt(0)) 
-        {
-            var spaceIndex : Int = realData.indexOf(" ");
-            tag = realData.substring(0, spaceIndex);
-            realData = realData.substring(spaceIndex + 1, realData.length);
-        }
-        
-        var responseType : String = realData.charAt(0);
-        var responseCode : String = realData.substring(0, 3);
-        if (realData.charAt(3) == "-") 
-            multiPart = true;
-        
-        realData = realData.substring(4, realData.length);
-        
-        var request : String = "";
-        
-        //trace("Response: <"+realData+">");
-        
-        var error : com.phidgets.PhidgetError = new PhidgetError(Constants.EPHIDGET_NETWORK);
-        error.setMessage(responseCode + " " + realData);
-        
-        switch (responseType)
-        {
-            case Constants.SUCCESS_200_RESP:
-                if (tag == "report") 
-                {
-                    //Explicit ACK - don't bother, reduces performance sometimes
-                    //socketSend("report ack");
-                    if (realData.substring(0, 3) == "lid") 
+        trace("on socketData"+evt.data+"end");
+
+        var dataArr : Array<String> = evt.data.split("\n");
+
+        //trace ("dataArr"+dataArr);
+
+        for (m in 0...dataArr.length-1){
+
+            trace("m"+dataArr[m]);
+
+            var realData : String = dataArr[m];//evt.data;
+            /*if (evt.data.indexOf("\n") != -1) 
+                realData = evt.data.substring(0, evt.data.indexOf("\n"));*/
+            
+            var tag : String = null;
+            var multiPart : Bool = false;
+            
+            //check for and parse out a tag
+            if (realData.charCodeAt(0) > "9".charCodeAt(0) || realData.charCodeAt(0) < "0".charCodeAt(0)) 
+            {
+                var spaceIndex : Int = realData.indexOf(" ");
+                tag = realData.substring(0, spaceIndex);
+                realData = realData.substring(spaceIndex + 1, realData.length);
+            }
+            
+            var responseType : String = realData.charAt(0);
+            var responseCode : String = realData.substring(0, 3);
+            if (realData.charAt(3) == "-") 
+                multiPart = true;
+            
+            realData = realData.substring(4, realData.length);
+            
+            var request : String = "";
+            
+            trace("Response: <"+realData+">");
+            
+            var error : com.phidgets.PhidgetError = new PhidgetError(Constants.EPHIDGET_NETWORK);
+            error.setMessage(responseCode + " " + realData);
+            
+            switch (responseType)
+            {
+                case Constants.SUCCESS_200_RESP:
+                    if (tag == "report") 
                     {
-                        var lisid : Int = Std.parseInt(realData.charAt(3));
-                        var callback : Dynamic = lidList[lisid];
-                        var keyStart : Int = realData.indexOf("key ") + 4;
-                        var keyEnd : Int = realData.indexOf(" latest");
-                        var key : String = realData.substring(keyStart, keyEnd);
-                        var valStart : Int = realData.indexOf("\"", keyEnd) + 1;
-                        var valEnd : Int = realData.indexOf("\"", valStart);
-                        var val : String = realData.substring(valStart, valEnd);
-                        var reasonStart : Int = realData.indexOf("(", valEnd) + 1;
-                        var reasonEnd : Int = realData.indexOf(")", valEnd);
-                        var reason : String = realData.substring(reasonStart, reasonEnd);
-                        var reasonInt : Int = -1;
-                        switch (reason)
+                        //Explicit ACK - don't bother, reduces performance sometimes
+                        //socketSend("report ack");
+                        trace("in report"+realData);
+                        if (realData.substring(0, 3) == "lid") 
                         {
-                            case "current":
-                                reasonInt = com.phidgets.Constants.CURRENT_VALUE;
-                            case "removing":
-                                reasonInt = com.phidgets.Constants.ENTRY_REMOVING;
-                            case "added":
-                                reasonInt = com.phidgets.Constants.ENTRY_ADDED;
-                            case "changed":
-                                reasonInt = com.phidgets.Constants.VALUE_CHANGED;
-                        }  //unescape val  
-                        
-                        callback(key, unescape(val), reasonInt);
-                    }
-                }
-            case Constants.FAILURE_300_RESP:
-                _errorCallback(error);
-            case Constants.FAILURE_400_RESP:
-                _errorCallback(error);
-            case Constants.FAILURE_500_RESP:
-                _errorCallback(error);
-            case Constants.AUTHENTICATE_900_RESP:
-                switch (responseCode)
-                {
-                    case "999":  //Authentication required  
-                        var ticket : String = realData + _password;
-                        _password = null;
-                        var hash : String = MD5.hex_md5(ticket);
-                        request = "997 " + hash;
-                        socketSend(request);
-                    case "998":  //Authentication failed  
-                    _errorCallback(new PhidgetError(com.phidgets.Constants.EPHIDGET_BADPASSWORD));
-                    case "996":  //Authenitcated, or no authentication  
-                        //check version
-						var error = false;
-                        if (realData.indexOf("version=", 0) <= 0) 
-                        {
-                            _errorCallback(new PhidgetError(com.phidgets.Constants.EPHIDGET_BADVERSION));
-                            error = true;
+
+                            trace("lid found");
+                            var lisid : Int = Std.parseInt(realData.charAt(3));
+                            var callback : Dynamic = lidList[lisid];
+                            var keyStart : Int = realData.indexOf("key ") + 4;
+                            var keyEnd : Int = realData.indexOf(" latest");
+                            var key : String = realData.substring(keyStart, keyEnd);
+                            var valStart : Int = realData.indexOf("\"", keyEnd) + 1;
+                            var valEnd : Int = realData.indexOf("\"", valStart);
+                            var val : String = realData.substring(valStart, valEnd);
+                            var reasonStart : Int = realData.indexOf("(", valEnd) + 1;
+                            var reasonEnd : Int = realData.indexOf(")", valEnd);
+                            var reason : String = realData.substring(reasonStart, reasonEnd);
+                            var reasonInt : Int = -1;
+                            switch (reason)
+                            {
+                                case "current":
+                                    reasonInt = com.phidgets.Constants.CURRENT_VALUE;
+                                case "removing":
+                                    reasonInt = com.phidgets.Constants.ENTRY_REMOVING;
+                                case "added":
+                                    reasonInt = com.phidgets.Constants.ENTRY_ADDED;
+                                case "changed":
+                                    reasonInt = com.phidgets.Constants.VALUE_CHANGED;
+                            }  //unescape val  
+                            
+                            callback(key, unescape(val), reasonInt);
+                            //_dataCallback(key, unescape(val), reasonInt);
+
                         }
-                        if(!error) onAuthenticated();
-                    case "994":  //Version mismatch  
-                    _errorCallback(new PhidgetError(com.phidgets.Constants.EPHIDGET_BADVERSION));
-                }
+                    }
+                case Constants.FAILURE_300_RESP:
+                    _errorCallback(error);
+                case Constants.FAILURE_400_RESP:
+                    _errorCallback(error);
+                case Constants.FAILURE_500_RESP:
+                    _errorCallback(error);
+                case Constants.AUTHENTICATE_900_RESP:
+                    switch (responseCode)
+                    {
+                        case "999":  //Authentication required  
+                            var ticket : String = realData + _password;
+                            _password = null;
+                            var hash : String = MD5.hex_md5(ticket);
+                            request = "997 " + hash;
+                            socketSend(request);
+                        case "998":  //Authentication failed  
+                        _errorCallback(new PhidgetError(com.phidgets.Constants.EPHIDGET_BADPASSWORD));
+                        case "996":  //Authenitcated, or no authentication  
+                            //check version
+    						var error = false;
+                            if (realData.indexOf("version=", 0) <= 0) 
+                            {
+                                _errorCallback(new PhidgetError(com.phidgets.Constants.EPHIDGET_BADVERSION));
+                                error = true;
+                            }
+                            if(!error) onAuthenticated();
+                        case "994":  //Version mismatch  
+                        _errorCallback(new PhidgetError(com.phidgets.Constants.EPHIDGET_BADVERSION));
+                    }
+            }    
         }
+    
     }
     
     private function get_Address() : String{
