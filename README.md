@@ -3,4 +3,8 @@ PhidgetHX
 
 Haxe Phidget client library
 
-Initial goal is stable Flash target. Neko and CPP next in line. 
+Updated for Openfl 3 (requires updated socketXML class to run, works fine as is for _legacy)
+
+Tested to run in Flash and CPP
+
+Also added Test project
